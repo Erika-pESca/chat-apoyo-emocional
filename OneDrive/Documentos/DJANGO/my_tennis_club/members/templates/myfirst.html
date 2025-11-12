@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Django</title>
+  <style>
+    body {
+      background-color: #0d1117;
+      color: #e6edf3;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #161b22;
+      text-align: center;
+      padding: 1.5rem 0;
+      border-bottom: 1px solid #238636;
+    }
+
+    header h1 {
+      color: #58a6ff;
+      font-size: 2.3rem;
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      animation: fadeIn 2s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .container {
+      max-width: 950px;
+      margin: 2rem auto;
+      background: #161b22;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 0 18px rgba(35, 134, 54, 0.3);
+    }
+
+    h2 {
+      color: #3fb950;
+      border-bottom: 2px solid #238636;
+      padding-bottom: 0.5rem;
+      margin-top: 2rem;
+    }
+
+    p {
+      line-height: 1.7;
+      font-size: 1.1rem;
+    }
+
+    ul {
+      list-style-type: square;
+      margin-left: 2rem;
+    }
+
+    li {
+      margin-bottom: 0.6rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      margin-top: 2rem;
+      border-top: 1px solid #238636;
+      color: #8b949e;
+      font-size: 0.9rem;
+    }
+
+    .highlight {
+      color: #58a6ff;
+      font-weight: bold;
+    }
+
+    .tip {
+      background-color: #1a1f27;
+      border-left: 4px solid #238636;
+      padding: 1rem;
+      margin-top: 1rem;
+      border-radius: 8px;
+      font-style: italic;
+      color: #c9d1d9;
+    }
+
+    .examples {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .example-card {
+      background-color: #0d1117;
+      border: 1px solid #238636;
+      padding: 1rem;
+      border-radius: 8px;
+      transition: 0.3s;
+    }
+
+    .example-card:hover {
+      background-color: #1a1f27;
+      transform: translateY(-4px);
+    }
+
+    .example-card h3 {
+      color: #58a6ff;
+      margin-bottom: 0.5rem;
+    }
+
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Django</h1>
+  </header>
+
+  <div class="container">
+
+    <section>
+      <h2>¿Qué es Django?</h2>
+      <p><span class="highlight">Django</span> es un <strong>framework de desarrollo web de alto nivel</strong> basado en Python. 
+      Su objetivo principal es facilitar la creación de aplicaciones web complejas de forma rápida, segura y escalable. 
+      Fue creado en 2003 por <strong>Adrian Holovaty</strong> y <strong>Simon Willison</strong>, y lanzado públicamente en 2005.</p>
+    </section>
+
+    <section>
+      <h2>¿Cómo funciona Django?</h2>
+      <p>Django sigue el patrón de arquitectura <strong>MVT (Modelo - Vista - Template)</strong>, similar al MVC tradicional:</p>
+      <ul>
+        <li><strong>Modelo (Model):</strong> Representa los datos y las reglas de negocio. Se conecta con la base de datos mediante el ORM de Django.</li>
+        <li><strong>Vista (View):</strong> Contiene la lógica de la aplicación y procesa las solicitudes del usuario.</li>
+        <li><strong>Template:</strong> Se encarga de la presentación (HTML, CSS, etc.).</li>
+      </ul>
+
+      <div class="tip">
+        Cuando un usuario realiza una solicitud HTTP, Django la recibe, la procesa a través de las vistas, 
+        accede a los datos mediante los modelos, y finalmente devuelve una página HTML generada con plantillas.
+      </div>
+    </section>
+
+    <section>
+      <h2>Ventajas de usar Django</h2>
+      <ul>
+        <li>✅ <strong>Desarrollo rápido:</strong> permite crear prototipos y aplicaciones funcionales en menos tiempo.</li>
+        <li>✅<strong>Seguridad integrada:</strong> protege contra ataques como XSS, CSRF, y SQL Injection.</li>
+        <li>✅ <strong>ORM potente:</strong> facilita la interacción con bases de datos sin escribir SQL manual.</li>
+        <li>✅ <strong>Escalabilidad:</strong> ideal para proyectos pequeños o grandes plataformas.</li>
+        <li>✅ <strong>Gran comunidad:</strong> amplia documentación y soporte activo.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Desventajas de Django</h2>
+      <ul>
+        <li>❌ Puede ser <strong>excesivo</strong> para proyectos muy pequeños.</li>
+        <li>❌ <strong>Curva de aprendizaje:</strong> su estructura inicial puede ser confusa para principiantes.</li>
+        <li>❌ <strong>Rigidez:</strong> su arquitectura “lista para usar” puede limitar personalizaciones profundas.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Ejemplos de sitios creados con Django</h2>
+      <p>Algunos de los sitios más conocidos que utilizan Django son:</p>
+      <div class="examples">
+        <div class="example-card">
+          <h3>Instagram</h3>
+          <p>Una de las redes sociales más grandes del mundo. Django maneja gran parte de su infraestructura.</p>
+        </div>
+        <div class="example-card">
+          <h3>Pinterest</h3>
+          <p>Plataforma visual que permite compartir imágenes y colecciones. Usa Django por su eficiencia y escalabilidad.</p>
+        </div>
+        <div class="example-card">
+          <h3>Mozilla</h3>
+          <p>El sitio oficial de Mozilla y algunos de sus proyectos web están desarrollados con Django.</p>
+        </div>
+        <div class="example-card">
+          <h3>Disqus</h3>
+          <p>Sistema de comentarios para blogs y sitios web, totalmente construido sobre Django.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Estructura de un proyecto Django</h2>
+      <p>Al crear un nuevo proyecto con <strong>django-admin startproject</strong>, se genera una estructura como esta:</p>
+      <div class="tip">
+        📁 myproject/ <br>
+        ┣ 📂 myapp/ <br>
+        ┃ ┣  models.py → define los modelos de datos <br>
+        ┃ ┣  views.py → lógica de negocio <br>
+        ┃ ┣  urls.py → rutas de la aplicación <br>
+        ┃ ┣ 📂 templates/ → vistas HTML <br>
+        ┣  manage.py → ejecutar comandos del proyecto <br>
+        ┣  settings.py → configuración del proyecto <br>
+        ┣  urls.py → rutas globales <br>
+      </div>
+    </section>
+
+    <section>
+      <h2>Comandos básicos de Django</h2>
+      <ul>
+        <li><strong>django-admin startproject nombre:</strong> crea un nuevo proyecto Django.</li>
+        <li><strong>python manage.py runserver:</strong> inicia el servidor local.</li>
+        <li><strong>python manage.py startapp appname:</strong> crea una nueva aplicación dentro del proyecto.</li>
+        <li><strong>python manage.py makemigrations:</strong> prepara los cambios en los modelos para la base de datos.</li>
+        <li><strong>python manage.py migrate:</strong> aplica los cambios (migraciones) a la base de datos.</li>
+      </ul>
+    </section>
+
+    
+  </div>
+</body>
+</html>
