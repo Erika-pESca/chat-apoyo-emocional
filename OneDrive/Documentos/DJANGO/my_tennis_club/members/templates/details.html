@@ -1,0 +1,401 @@
+{% extends "master.html" %}
+
+{% block title %}
+  Perfil: {{ mymember.firstname }}
+{% endblock %}
+
+{% block content %}
+
+<style>
+/* Variables de colores - Azul, Rosado y Blanco */
+:root {
+    --azul-principal: #4A90E2;
+    --azul-oscuro: #357ABD;
+    --azul-claro: #6BA3E8;
+    --rosado-principal: #FF6B9D;
+    --rosado-oscuro: #E55A8A;
+    --rosado-claro: #FF8FB3;
+    --blanco: #FFFFFF;
+    --blanco-suave: #F8F9FA;
+    --gris-claro: #E8ECF0;
+}
+
+/* Contenedor principal con imagen de fondo de cancha de tenis */
+.details-container {
+    min-height: calc(100vh - 200px);
+    position: relative;
+    padding: 60px 20px;
+    overflow: hidden;
+    background-image: url('https://campestrecali.com/wp-content/uploads/2017/09/tenis-club-campestre-cali.jpg');
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Overlay para mejorar la legibilidad */
+.details-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, 
+        rgba(74, 144, 226, 0.5) 0%, 
+        rgba(255, 107, 157, 0.5) 50%,
+        rgba(74, 144, 226, 0.5) 100%);
+    z-index: 0;
+}
+
+/* Contenedor principal del contenido */
+.contenido-principal {
+    background: var(--blanco);
+    backdrop-filter: blur(10px);
+    padding: 0;
+    border-radius: 35px;
+    max-width: 700px;
+    width: 100%;
+    box-shadow: 0 25px 70px rgba(74, 144, 226, 0.3);
+    border: 3px solid transparent;
+    background-image: linear-gradient(white, white), 
+                      linear-gradient(135deg, var(--azul-principal), var(--rosado-principal));
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    position: relative;
+    z-index: 1;
+    animation: scaleIn 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Header con diseño único */
+.header-tenis {
+    padding: 50px 40px;
+    text-align: center;
+    background: linear-gradient(135deg, var(--azul-principal) 0%, var(--rosado-principal) 100%);
+    color: white;
+    font-weight: 800;
+    position: relative;
+    overflow: hidden;
+}
+
+.header-tenis::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>');
+    opacity: 0.3;
+    animation: patternMove 20s linear infinite;
+}
+
+@keyframes patternMove {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 100px 100px;
+    }
+}
+
+.header-tenis h1 {
+    margin: 0;
+    font-size: 32px;
+    letter-spacing: 1px;
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.header-tenis .member-name {
+    display: block;
+    font-size: 24px;
+    margin-top: 10px;
+    opacity: 0.95;
+    font-weight: 600;
+}
+
+/* Icono decorativo */
+.profile-icon {
+    font-size: 70px;
+    margin-bottom: 15px;
+    display: inline-block;
+    animation: iconRotate 3s infinite ease-in-out;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.2));
+}
+
+@keyframes iconRotate {
+    0%, 100% {
+        transform: rotate(0deg) scale(1);
+    }
+    50% {
+        transform: rotate(10deg) scale(1.1);
+    }
+}
+
+/* Contenedor de información */
+.info-container {
+    padding: 50px 40px;
+    background: var(--blanco-suave);
+}
+
+/* Tarjeta de información con diseño de tarjetas individuales */
+.info-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.info-card {
+    background: var(--blanco);
+    padding: 25px 30px;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(74, 144, 226, 0.1);
+    border-left: 5px solid transparent;
+    background-image: linear-gradient(white, white),
+                      linear-gradient(180deg, var(--azul-principal), var(--rosado-principal));
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.info-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, rgba(74, 144, 226, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: translate(30px, -30px);
+    transition: transform 0.4s ease;
+}
+
+.info-card:hover::before {
+    transform: translate(20px, -20px) scale(1.2);
+}
+
+.info-card:hover {
+    transform: translateX(10px) translateY(-5px);
+    box-shadow: 0 12px 35px rgba(74, 144, 226, 0.2);
+}
+
+.info-label {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--azul-principal), var(--rosado-principal));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.info-value {
+    font-size: 18px;
+    color: #333;
+    font-weight: 500;
+    position: relative;
+    z-index: 1;
+    word-break: break-word;
+}
+
+.info-value::before {
+    content: '';
+    position: absolute;
+    left: -15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 0;
+    background: linear-gradient(180deg, var(--azul-principal), var(--rosado-principal));
+    border-radius: 2px;
+    transition: height 0.4s ease;
+}
+
+.info-card:hover .info-value::before {
+    height: 60%;
+}
+
+/* Botón con nuevo diseño */
+.button-container {
+    padding: 40px;
+    text-align: center;
+    background: var(--blanco);
+    border-top: 2px solid var(--gris-claro);
+}
+
+.btn-saque {
+    background: linear-gradient(135deg, var(--azul-principal) 0%, var(--rosado-principal) 100%);
+    color: white;
+    padding: 16px 35px;
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: 700;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 25px rgba(74, 144, 226, 0.4);
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 15px;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-saque::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-saque:hover::before {
+    width: 400px;
+    height: 400px;
+}
+
+.btn-saque:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 12px 35px rgba(74, 144, 226, 0.5);
+}
+
+.btn-saque span {
+    position: relative;
+    z-index: 1;
+}
+
+.btn-saque .arrow {
+    position: relative;
+    z-index: 1;
+    transition: transform 0.3s ease;
+}
+
+.btn-saque:hover .arrow {
+    transform: translateX(-5px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .details-container {
+        padding: 30px 15px;
+    }
+    
+    .contenido-principal {
+        border-radius: 25px;
+    }
+    
+    .header-tenis {
+        padding: 40px 25px;
+    }
+    
+    .header-tenis h1 {
+        font-size: 24px;
+    }
+    
+    .header-tenis .member-name {
+        font-size: 20px;
+    }
+    
+    .profile-icon {
+        font-size: 50px;
+    }
+    
+    .info-container {
+        padding: 35px 25px;
+    }
+    
+    .info-card {
+        padding: 20px 25px;
+    }
+    
+    .info-value {
+        font-size: 16px;
+    }
+    
+    .button-container {
+        padding: 30px 25px;
+    }
+    
+    .btn-saque {
+        padding: 14px 28px;
+        font-size: 14px;
+    }
+}
+</style>
+
+<div class="details-container">
+    <div class="contenido-principal">
+        <div class="header-tenis">
+            <div class="profile-icon">👤</div>
+            <h1>Perfil del Miembro</h1>
+            <span class="member-name">{{ mymember.firstname }} {{ mymember.lastname }}</span>
+        </div>
+
+        <div class="info-container">
+            <div class="info-grid">
+                <div class="info-card">
+                    <span class="info-label">📞 Teléfono</span>
+                    <div class="info-value">{{ mymember.phone }}</div>
+                </div>
+                
+                <div class="info-card">
+                    <span class="info-label">📅 Miembro desde</span>
+                    <div class="info-value">{{ mymember.joined_date }}</div>
+                </div>
+                
+                <div class="info-card">
+                    <span class="info-label">📍 Dirección</span>
+                    <div class="info-value">{{ mymember.address }}</div>
+                </div>
+                
+                <div class="info-card">
+                    <span class="info-label">✉️ Email</span>
+                    <div class="info-value">{{ mymember.email }}</div>
+                </div>
+                
+                <div class="info-card">
+                    <span class="info-label">🏙️ Ciudad</span>
+                    <div class="info-value">{{ mymember.city }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-container">
+            <a href="/members" class="btn-saque">
+                <span class="arrow">←</span>
+                <span>Volver a Members</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

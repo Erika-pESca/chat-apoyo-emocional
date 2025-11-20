@@ -16,8 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from members import views
 
 urlpatterns = [
     path('', include('members.urls')),
     path('admin/', admin.site.urls),
 ]
+
+# Handler para errores 404
+handler404 = views.custom_404

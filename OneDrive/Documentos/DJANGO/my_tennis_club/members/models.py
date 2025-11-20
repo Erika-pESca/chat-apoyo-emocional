@@ -1,6 +1,10 @@
-from django.urls import path
-from . import views
+from django.db import models
 
-urlpatterns = [
-    path('members/', views.members, name='members'),
-]
+class Member(models.Model):
+  firstname = models.CharField(max_length=255)
+  lastname = models.CharField(max_length=255)
+  phone = models.IntegerField(null=True)
+  joined_date = models.DateField(null=True)
+  email = models.EmailField(null=True)
+  address = models.CharField(max_length=255, null=True)
+  city = models.CharField(max_length=255, null=True)
