@@ -13,7 +13,7 @@ export const connectSocket = (token: string): Socket => {
     auth: {
       token,
     },
-    transports: ['websocket', 'polling'],
+    transports: ['websocket'],
   });
 
   socket.on('connect', () => {

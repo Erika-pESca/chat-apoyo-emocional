@@ -23,7 +23,19 @@ interface SendMessagePayload {
 
 @WebSocketGateway({
   cors: {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    origin: (origin: string, callback: (err: Error | null, allow?: boolean) => void) => {
+      const allowedOrigins = [
+        process.env.CORS_ORIGIN,
+        'http://localhost:5173',
+        'http://localhost:3000',
+      ];
+      const originAux = origin || '';
+      if (allowedOrigins.includes(originAux) || /^http:\/\/localhost:\d+$/.test(originAux)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   },
   namespace: '/ws',
@@ -41,66 +53,81 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private summaryService: SummaryService,
   ) {}
 
-  /**
-   * Cuando un usuario se conecta al WebSocket
-   */
   async handleConnection(client: Socket) {
-    const user = client.data.user;
-    console.log(`✅ Usuario conectado: ${user.email} (${user.id})`);
-
-    // Unir al usuario a su "room" personal
-    client.join(`user:${user.id}`);
-
-    // Enviar confirmación de conexión
-    client.emit('connected', {
-      message: 'Conectado exitosamente',
-      userId: user.id,
-    });
+    // La autenticación y el adjuntar el usuario al socket se manejan en el WsSupabaseAuthGuard.
+    // El guard se ejecuta en cada @SubscribeMessage, no en OnGatewayConnection.
+    // Por lo tanto, no podemos acceder a `client.data.user` aquí de forma segura.
+    console.log(`🔌 Cliente conectado: ${client.id}`);
   }
 
-  /**
-   * Cuando un usuario se desconecta
-   */
   handleDisconnect(client: Socket) {
     const user = client.data.user;
     console.log(`❌ Usuario desconectado: ${user?.email || 'Unknown'}`);
   }
 
-  /**
-   * Evento principal: enviar mensaje
-   */
+  @SubscribeMessage('create_conversation_with_first_message')
+  async handleCreateConversation(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { message: string },
+  ) {
+    const userId = client.data.userId;
+    const token = client.data.token;
+    const { message } = payload;
+
+    try {
+      const newConversation = await this.conversationsService.create(
+        userId,
+        {
+          titulo: message.substring(0, 40) + (message.length > 40 ? '...' : ''),
+        },
+        token,
+      );
+      console.log(`✨ Conversación creada: ${newConversation.id}`);
+      
+      client.emit('conversation_created', newConversation);
+      
+      await this.processAndRespond(client, newConversation.id, message);
+    } catch (error) {
+      console.error('❌ Error en create_conversation_with_first_message:', error);
+      client.emit('error', {
+        message: 'Error al crear la conversación',
+        code: 'CONVERSATION_CREATE_ERROR',
+      });
+    }
+  }
+  
   @SubscribeMessage('send_message')
   async handleSendMessage(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: SendMessagePayload,
   ) {
+    await this.processAndRespond(client, payload.conversationId, payload.message);
+  }
+
+  private async processAndRespond(
+    client: Socket,
+    conversationId: string,
+    message: string,
+  ) {
     const userId = client.data.userId;
     const token = client.data.token;
-    const { conversationId, message } = payload;
 
     try {
-      console.log(`📨 Mensaje recibido de ${userId}: "${message}"`);
-
-      // 1. Validar que la conversación pertenece al usuario
+      console.log(`📨 Mensaje recibido de ${userId} en conv ${conversationId}: "${message}"`);
+      
       const conversation = await this.conversationsService.findOne(
         conversationId,
         userId,
         token,
       );
-
       if (!conversation) {
         client.emit('error', { message: 'Conversación no encontrada' });
         return;
       }
-
-      // 2. Analizar sentimiento del mensaje del usuario
+      
       const sentiment = await this.sentimentService.analyze(message);
+      console.log(`🎭 Sentimiento: ${sentiment.label}`);
 
-      console.log(
-        `🎭 Sentimiento: ${sentiment.label} (${sentiment.emotions.join(', ')})`,
-      );
-
-      // 3. Guardar mensaje del usuario
       const userMessage = await this.messagesService.create(
         {
           conversationId,
@@ -111,29 +138,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         token,
       );
 
-      // 4. Emitir el mensaje del usuario al cliente (confirmación)
-      client.emit('message_received', {
-        id: userMessage.id,
-        role: 'user',
-        content: message,
-        sentiment,
-        createdAt: userMessage.created_at,
-      });
+      client.emit('message_received', userMessage);
 
-      // 5. Indicar que la IA está "escribiendo"
       client.emit('ai_typing', { conversationId, isTyping: true });
 
-      // 6. Generar respuesta de la IA
       console.log(`🤖 Generando respuesta de IA...`);
       const aiResponse = await this.aiService.generateCoachingResponse({
         userMessage: message,
         conversationId,
         token,
       });
-
       console.log(`✅ Respuesta generada: "${aiResponse.substring(0, 50)}..."`);
-
-      // 7. Guardar respuesta del assistant
+      
       const assistantMessage = await this.messagesService.create(
         {
           conversationId,
@@ -143,24 +159,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         token,
       );
 
-      // 8. Detener indicador de "escribiendo"
       client.emit('ai_typing', { conversationId, isTyping: false });
+      client.emit('ai_response', assistantMessage);
 
-      // 9. Emitir respuesta de la IA al cliente
-      client.emit('ai_response', {
-        id: assistantMessage.id,
-        role: 'assistant',
-        content: aiResponse,
-        createdAt: assistantMessage.created_at,
-      });
-
-      // 10. Verificar si se necesita actualizar resumen (cada 10 mensajes)
       console.log(`📝 Verificando si necesita actualizar resumen...`);
       await this.summaryService.checkAndUpdateSummary(conversationId, token);
-
       console.log(`✅ Flujo completado exitosamente`);
     } catch (error) {
-      console.error('❌ Error en send_message:', error);
+      console.error(`❌ Error en processAndRespond para conv ${conversationId}:`, error);
       client.emit('error', {
         message: 'Error al procesar el mensaje',
         code: 'MESSAGE_ERROR',
@@ -168,9 +174,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  /**
-   * Evento: usuario se une a una conversación
-   */
   @SubscribeMessage('join_conversation')
   async handleJoinConversation(
     @ConnectedSocket() client: Socket,
@@ -180,7 +183,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const token = client.data.token;
 
     try {
-      // Validar que la conversación existe y pertenece al usuario
       const conversation = await this.conversationsService.findOne(
         payload.conversationId,
         userId,
@@ -192,7 +194,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         client.emit('joined_conversation', {
           conversationId: payload.conversationId,
         });
-
         console.log(
           `👤 Usuario ${userId} se unió a conversación ${payload.conversationId}`,
         );
@@ -209,9 +210,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  /**
-   * Evento: usuario abandona una conversación
-   */
   @SubscribeMessage('leave_conversation')
   handleLeaveConversation(
     @ConnectedSocket() client: Socket,
@@ -221,29 +219,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     client.emit('left_conversation', {
       conversationId: payload.conversationId,
     });
-
     console.log(
       `👋 Usuario ${client.data.userId} abandonó conversación ${payload.conversationId}`,
     );
   }
 
-  /**
-   * Evento: obtener historial de mensajes
-   */
   @SubscribeMessage('get_messages')
   async handleGetMessages(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { conversationId: string; limit?: number },
   ) {
     const token = client.data.token;
-
     try {
       const messages = await this.messagesService.findByConversation(
         payload.conversationId,
         token,
         payload.limit,
       );
-
       client.emit('messages_loaded', {
         conversationId: payload.conversationId,
         messages,

@@ -1,54 +1,25 @@
 import { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-// Inline ConversationList when ../components/ConversationList is missing
-type Conversation = { id: string; title: string; lastMessage?: string };
-
-type ConversationListProps = {
-  selectedConversationId: string | null;
-  onSelectConversation: (id: string) => void;
-};
-
-function ConversationList({ selectedConversationId, onSelectConversation }: ConversationListProps) {
-  const mockConversations: Conversation[] = [
-    { id: '1', title: 'Conversación 1', lastMessage: 'Hola' },
-    { id: '2', title: 'Conversación 2', lastMessage: 'Necesito ayuda' },
-  ];
-
-  return (
-    <div className="flex-1 overflow-auto">
-      <ul>
-        {mockConversations.map((c) => (
-          <li key={c.id}>
-            <button
-              className={`w-full text-left p-3 ${selectedConversationId === c.id ? 'bg-gray-100' : ''}`}
-              onClick={() => onSelectConversation(c.id)}
-            >
-              <div className="font-semibold">{c.title}</div>
-              <div className="text-sm text-gray-500">{c.lastMessage}</div>
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-// Fallback inline ChatWindow component when ../components/ChatWindow is missing
-type ChatWindowProps = { conversationId: string };
-
-function ChatWindow({ conversationId }: ChatWindowProps) {
-  return (
-    <div className="flex-1 p-4">
-      <h2 className="text-lg font-semibold">Conversation {conversationId}</h2>
-      <div className="mt-4 text-sm text-gray-600">Contenido del chat...</div>
-    </div>
-  );
-}
-
+import { useAuth } from '@/context/AuthContext';
+import ConversationList from '@/components/ConversationList';
+import ChatWindow from '@/components/ChatWindow';
+import type { Conversation } from '@/types';
 
 export default function ChatApp() {
   const { user, signOut } = useAuth();
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  // Estado para forzar la recarga de la lista de conversaciones
+  const [listKey, setListKey] = useState(Date.now());
+
+  const handleCreateNew = () => {
+    const newConversationId = `new_${Date.now()}`;
+    setSelectedConversationId(newConversationId);
+  };
+
+  const handleConversationCreated = (newConversation: Conversation) => {
+    // Cuando el backend confirma la creación, actualizamos la UI
+    setListKey(Date.now()); // Forza el refresh de la lista
+    setSelectedConversationId(newConversation.id); // Cambia al ID real
+  };
 
   return (
     <div className="h-screen flex bg-gray-100">
@@ -68,15 +39,20 @@ export default function ChatApp() {
         </div>
 
         <ConversationList
+          key={listKey} // La key fuerza el remonte del componente
           selectedConversationId={selectedConversationId}
           onSelectConversation={setSelectedConversationId}
+          onCreateNew={handleCreateNew}
         />
       </div>
 
       {/* Chat Area */}
       <div className="flex-1 flex flex-col">
         {selectedConversationId ? (
-          <ChatWindow conversationId={selectedConversationId} />
+          <ChatWindow
+            conversationId={selectedConversationId}
+            onConversationCreated={handleConversationCreated}
+          />
         ) : (
           <div className="flex-1 flex items-center justify-center text-gray-500">
             <div className="text-center">
