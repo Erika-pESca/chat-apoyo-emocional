@@ -9,7 +9,7 @@ export class AIService {
     private geminiService: GeminiService,
     private promptsService: PromptsService,
     private responseValidator: ResponseValidatorService,
-  ) {}
+  ) { }
 
   /**
    * Genera una respuesta de coaching emocional
@@ -37,6 +37,12 @@ export class AIService {
         userMessage,
         token,
       });
+
+      // 🔍 LOG DE DEPURACIÓN: Verificar el prompt
+      console.log('=== PROMPT COMPLETO ENVIADO A GEMINI ===');
+      console.log('Longitud del prompt:', fullPrompt.length);
+      console.log('Primeros 500 caracteres:', fullPrompt.substring(0, 500));
+      console.log('=========================================');
 
       // 3. Generar respuesta con Gemini
       const rawResponse = await this.geminiService.generate(fullPrompt);

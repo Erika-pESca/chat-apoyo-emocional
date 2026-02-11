@@ -8,7 +8,7 @@ export class PromptsService {
   constructor(
     private conversationsService: ConversationsService,
     private messagesService: MessagesService,
-  ) {}
+  ) { }
 
   /**
    * Construye el prompt completo para Gemini
@@ -36,6 +36,9 @@ export class PromptsService {
 
     // Construir el prompt
     let prompt = SYSTEM_PROMPT_COACHING + '\n\n';
+
+    // 🔍 LOG DE DEPURACIÓN: Verificar que el prompt del sistema se cargó
+    console.log('📝 SYSTEM_PROMPT_COACHING cargado:', SYSTEM_PROMPT_COACHING.substring(0, 100) + '...');
 
     // Agregar resumen si existe
     if (conversationInfo.summary) {
