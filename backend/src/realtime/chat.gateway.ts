@@ -146,6 +146,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const aiResponse = await this.aiService.generateCoachingResponse({
         userMessage: message,
         conversationId,
+        userId,
         token,
       });
       console.log(`✅ Respuesta generada: "${aiResponse.substring(0, 50)}..."`);

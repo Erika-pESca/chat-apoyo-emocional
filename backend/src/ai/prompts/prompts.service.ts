@@ -16,18 +16,26 @@ export class PromptsService {
   async buildPrompt(params: {
     conversationId: string;
     userMessage: string;
+    userId: string;
     token: string;
   }): Promise<string> {
-    const { conversationId, userMessage, token } = params;
+    const { conversationId, userMessage, userId, token } = params;
 
-    // Obtener información de la conversación (resumen)
+    // 1. Obtener historial global (Memoria Histórica) de todas las sesiones
+    const globalContext = await this.conversationsService.getGlobalUserContext(
+      userId,
+      conversationId,
+      token,
+    );
+
+    // 2. Obtener información de la conversación actual (resumen actual)
     const conversationInfo =
       await this.conversationsService.getConversationWithSummary(
         conversationId,
         token,
       );
 
-    // Obtener últimos 15 mensajes
+    // 3. Obtener últimos 15 mensajes
     const recentMessages = await this.messagesService.findByConversation(
       conversationId,
       token,
@@ -37,12 +45,16 @@ export class PromptsService {
     // Construir el prompt
     let prompt = SYSTEM_PROMPT_COACHING + '\n\n';
 
-    // 🔍 LOG DE DEPURACIÓN: Verificar que el prompt del sistema se cargó
-    console.log('📝 SYSTEM_PROMPT_COACHING cargado:', SYSTEM_PROMPT_COACHING.substring(0, 100) + '...');
+    // Inyectar Memoria Histórica si existe
+    if (globalContext) {
+      prompt += `## MEMORIA HISTÓRICA DEL USUARIO (Sesiones Pasadas):\n`;
+      prompt += `Esta es la evolución del usuario a través del tiempo. Úsala para dar continuidad y notar cambios:\n`;
+      prompt += `${globalContext}\n\n`;
+    }
 
-    // Agregar resumen si existe
+    // Inyectar contexto de la conversación actual
     if (conversationInfo.summary) {
-      prompt += `## Contexto previo de la conversación:\n`;
+      prompt += `## Contexto acumulado de ESTA conversación:\n`;
       prompt += `${conversationInfo.summary}\n\n`;
     }
 

@@ -13,14 +13,26 @@ export default function ChatWindow({ conversationId, onConversationCreated }: Ch
   const [isLoading, setIsLoading] = useState(true);
   const [isAiTyping, setIsAiTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const prevIdRef = useRef<string>(conversationId);
   const isNewConversation = conversationId.startsWith('new_');
 
   useEffect(() => {
     const socket = getSocket();
     if (!socket) return;
 
-    setMessages([]);
-    setIsLoading(!isNewConversation);
+    // Si el ID cambia de "new_..." a un ID real, NO borramos los mensajes.
+    // Solo borramos si cambiamos a una conversación totalmente distinta.
+    const isTransitioning = prevIdRef.current.startsWith('new_') && !conversationId.startsWith('new_');
+    
+    if (!isTransitioning) {
+      setMessages([]);
+      setIsLoading(!isNewConversation);
+    } else {
+      // Estamos transicionando: actualizamos el ID de los mensajes que ya tenemos en pantalla
+      setMessages(prev => prev.map(m => ({ ...m, conversation_id: conversationId })));
+    }
+
+    prevIdRef.current = conversationId;
     
     const handleMessagesLoaded = (data: { conversationId: string; messages: Message[] }) => {
       if (data.conversationId === conversationId) {

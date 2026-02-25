@@ -17,9 +17,10 @@ export class AIService {
   async generateCoachingResponse(params: {
     userMessage: string;
     conversationId: string;
+    userId: string;
     token: string;
   }): Promise<string> {
-    const { userMessage, conversationId, token } = params;
+    const { userMessage, conversationId, userId, token } = params;
 
     try {
       // 1. Validar mensaje del usuario
@@ -35,6 +36,7 @@ export class AIService {
       const fullPrompt = await this.promptsService.buildPrompt({
         conversationId,
         userMessage,
+        userId,
         token,
       });
 

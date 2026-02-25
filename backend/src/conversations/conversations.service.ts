@@ -138,6 +138,29 @@ export class ConversationsService {
   }
 
   /**
+   * Obtiene todos los resúmenes previos del usuario para dar contexto histórico
+   */
+  async getGlobalUserContext(userId: string, currentConversationId: string, token: string): Promise<string> {
+    const client = this.supabaseService.clientForUser(token);
+
+    const { data, error } = await client
+      .from('conversations')
+      .select('summary, created_at')
+      .eq('user_id', userId)
+      .neq('id', currentConversationId) // Excluir la actual para no duplicar
+      .not('summary', 'is', null)
+      .order('created_at', { ascending: true });
+
+    if (error || !data || data.length === 0) {
+      return '';
+    }
+
+    return data
+      .map((c, index) => `--- Sesión #${index + 1} (${new Date(c.created_at).toLocaleDateString()}):\n${c.summary}`)
+      .join('\n\n');
+  }
+
+  /**
    * Obtener conversación con información de resumen
    */
   async getConversationWithSummary(conversationId: string, token: string) {
