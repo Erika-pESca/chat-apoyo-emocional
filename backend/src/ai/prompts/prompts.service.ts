@@ -68,7 +68,7 @@ export class PromptsService {
     prompt += `## Mensaje actual del usuario:\n`;
     prompt += `${userMessage}\n\n`;
 
-    prompt += `Responde como coach emocional, enfocado en el bienestar del usuario. Sé empático, profesional y conciso.`;
+    prompt += `**INSTRUCCIÓN DE ENFOQUE:** Responde EXCLUSIVAMENTE como coach emocional y mentor SerLider. Si el usuario pregunta por temas técnicos, políticos, noticias o cualquier asunto ajeno a su bienestar, crecimiento o liderazgo personal, redirígelo amablemente hacia su proceso de coaching actual. Sé empático, profesional y profundo.`;
 
     return prompt;
   }

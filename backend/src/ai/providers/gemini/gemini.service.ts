@@ -6,50 +6,47 @@ import { GEMINI_CONFIG } from './gemini.config';
 @Injectable()
 export class GeminiService {
   private genAI: GoogleGenerativeAI;
-  private model: any;
+  private modelPro: any;
+  private modelFlash: any;
 
   constructor(private configService: ConfigService) {
     const apiKey = this.configService.get('GEMINI_API_KEY');
-
-    // Obtenemos el nombre del modelo directamente del .env, si no existe usa el flash por defecto
-
 
     if (!apiKey) {
       console.error('GEMINI_API_KEY is not defined in environment variables.');
       throw new Error('Gemini API key is missing.');
     }
 
-    console.log(`Using Gemini API Key: ${apiKey.substring(0, 5)}...`);
-
-
     this.genAI = new GoogleGenerativeAI(apiKey);
 
-    this.model = this.genAI.getGenerativeModel({
-      model: GEMINI_CONFIG.model,
+    console.log(`🤖 Inicializando Gemini Models: Pro: ${GEMINI_CONFIG.models.pro}, Flash: ${GEMINI_CONFIG.models.flash}`);
+
+    // Inicializamos ambos modelos con la API estándar para mayor estabilidad
+    this.modelPro = this.genAI.getGenerativeModel({
+      model: GEMINI_CONFIG.models.pro,
       generationConfig: GEMINI_CONFIG.generationConfig as any,
       safetySettings: GEMINI_CONFIG.safetySettings as any,
-    }, { apiVersion: 'v1beta' });
+    });
+
+    this.modelFlash = this.genAI.getGenerativeModel({
+      model: GEMINI_CONFIG.models.flash,
+      generationConfig: GEMINI_CONFIG.generationConfig as any,
+      safetySettings: GEMINI_CONFIG.safetySettings as any,
+    });
   }
 
   /**
-   * Genera una respuesta de texto con Gemini
+   * Genera una respuesta de texto eligiendo el modelo (por defecto Pro)
    */
-  async generate(prompt: string): Promise<string> {
+  async generate(prompt: string, useFlash: boolean = false): Promise<string> {
     try {
-      const result = await this.model.generateContent({
+      const model = useFlash ? this.modelFlash : this.modelPro;
+      const result = await model.generateContent({
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        // Ya no es necesario pasar la config aquí si se pasó en el constructor, 
-        // pero dejarlo no hace daño.
       });
 
       const response = await result.response;
-      const text = response.text();
-
-      if (!text || text.trim().length === 0) {
-        throw new Error('Gemini returned empty response');
-      }
-
-      return text.trim();
+      return response.text().trim();
     } catch (error) {
       console.error('Error calling Gemini API:', error);
       throw new Error(`Gemini API error: ${error.message}`);
@@ -57,11 +54,12 @@ export class GeminiService {
   }
 
   /**
-   * Genera streaming de respuesta
+   * Genera streaming de respuesta eligiendo el modelo (por defecto Pro)
    */
-  async generateStream(prompt: string): Promise<AsyncGenerator<string>> {
+  async generateStream(prompt: string, useFlash: boolean = false): Promise<AsyncGenerator<string>> {
     try {
-      const result = await this.model.generateContentStream({
+      const model = useFlash ? this.modelFlash : this.modelPro;
+      const result = await model.generateContentStream({
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
       });
 

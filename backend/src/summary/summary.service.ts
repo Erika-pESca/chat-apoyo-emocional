@@ -93,8 +93,8 @@ export class SummaryService {
       // 2. Construir prompt de resumen
       const summaryPrompt = this.promptsService.buildSummaryPrompt(allMessages);
 
-      // 3. Generar resumen con Gemini
-      const summary = await this.geminiService.generate(summaryPrompt);
+      // 3. Generar resumen con Gemini usando modelo Flash (barato)
+      const summary = await this.geminiService.generate(summaryPrompt, true);
 
       // 4. Validar que el resumen no esté vacío
       if (!summary || summary.trim().length === 0) {

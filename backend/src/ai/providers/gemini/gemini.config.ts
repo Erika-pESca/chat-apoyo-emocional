@@ -1,10 +1,13 @@
 export const GEMINI_CONFIG = {
-  model: 'gemini-2.5-flash',
+  models: {
+    pro: 'gemini-3.1-pro-preview', // El Psicólogo de última generación
+    flash: 'gemini-2.5-flash', // El Atleta más rápido y eficiente
+  },
   generationConfig: {
-    temperature: 0.7, // Balance entre creatividad y coherencia
+    temperature: 0.75, // Ideal para coaching empático
     topK: 40,
     topP: 0.95,
-    maxOutputTokens: 1024, // Respuestas de tamaño medio
+    maxOutputTokens: 2048,
   },
   safetySettings: [
     {
