@@ -38,7 +38,7 @@ export class ResponseValidatorService {
     }
 
     // 2. Validar longitud máxima
-    if (response.length > 2000) {
+    if (response.length > 5000) {
       return {
         isValid: false,
         reason: 'Respuesta demasiado larga',
