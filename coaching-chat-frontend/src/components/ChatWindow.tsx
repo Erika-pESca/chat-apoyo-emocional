@@ -37,7 +37,20 @@ export default function ChatWindow({ conversationId, onConversationCreated }: Ch
 
     const handleMessagesLoaded = (data: { conversationId: string; messages: Message[] }) => {
       if (data.conversationId === conversationId) {
-        setMessages(data.messages.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()));
+        const sortedServerMessages = data.messages.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+        
+        setMessages((prev) => {
+          // Buscamos si tenemos el mensaje inicial estático en nuestro estado actual
+          const initialMsg = prev.find(m => m.id === 'initial-ai-message');
+          
+          if (initialMsg) {
+            // Si lo tenemos, lo ponemos al principio y luego los del servidor
+            // Filtramos los del servidor para no duplicar si el inicial ya estuviera ahí (poco probable por el ID)
+            return [initialMsg, ...sortedServerMessages];
+          }
+          return sortedServerMessages;
+        });
+        
         setIsLoading(false);
       }
     };
@@ -77,7 +90,7 @@ export default function ChatWindow({ conversationId, onConversationCreated }: Ch
         id: 'initial-ai-message',
         conversation_id: conversationId,
         role: 'assistant',
-        content: 'Hola, soy tu asistente emocional. ¿En qué estás pensando?',
+        content: 'Hola, bienvenido al Sistema de Liderazgo Proactivo. Mi propósito es guiarte para pasar de reaccionar a la urgencia a liderar desde tu presencia. ¿Qué desafío o pensamiento te trae hoy aquí?',
         created_at: new Date().toISOString(),
       }]);
     }
@@ -260,12 +273,12 @@ export default function ChatWindow({ conversationId, onConversationCreated }: Ch
             />
             <button
               type="submit"
-              className="absolute right-2 bottom-2 bg-indigo-600 text-white rounded-xl p-3 hover:bg-indigo-700 disabled:opacity-30 transition-all active:scale-95 flex items-center justify-center shadow-lg shadow-indigo-200"
+              className="absolute right-3 bottom-[7px] bg-indigo-600 text-white rounded-xl p-2.5 hover:bg-indigo-700 disabled:opacity-30 transition-all active:scale-95 flex items-center justify-center shadow-lg shadow-indigo-200"
               disabled={!input.trim() || hasReachedLimit}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
+                className="h-5 w-5 rotate-90"
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >
