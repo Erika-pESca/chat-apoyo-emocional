@@ -12,6 +12,7 @@ export default function ChatWindow({ conversationId, onConversationCreated }: Ch
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isAiTyping, setIsAiTyping] = useState(false);
+  const [hasReachedLimit, setHasReachedLimit] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const prevIdRef = useRef<string>(conversationId);
   const isNewConversation = conversationId.startsWith('new_');
@@ -55,10 +56,18 @@ export default function ChatWindow({ conversationId, onConversationCreated }: Ch
       onConversationCreated(newConversation);
     };
 
+    const handleError = (err: { message: string; code?: string }) => {
+      console.error('Socket error:', err);
+      if (err.code === 'AI_LIMIT_REACHED') {
+        setHasReachedLimit(true);
+      }
+    };
+
     socket.on('messages_loaded', handleMessagesLoaded);
     socket.on('ai_response', handleAiResponse);
     socket.on('ai_typing', handleAiTyping);
     socket.on('conversation_created', handleConversationCreated);
+    socket.on('error', handleError);
 
     if (!isNewConversation) {
       socket.emit('join_conversation', { conversationId });
@@ -78,6 +87,7 @@ export default function ChatWindow({ conversationId, onConversationCreated }: Ch
       socket.off('ai_response', handleAiResponse);
       socket.off('ai_typing', handleAiTyping);
       socket.off('conversation_created', handleConversationCreated);
+      socket.off('error', handleError);
       if (!isNewConversation) {
         socket.emit('leave_conversation', { conversationId });
       }
@@ -207,19 +217,38 @@ export default function ChatWindow({ conversationId, onConversationCreated }: Ch
 
       {/* Input Area */}
       <div className="p-6 bg-white border-t border-gray-100">
+        {hasReachedLimit && (
+          <div className="max-w-7xl mx-auto mb-4 p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-center space-x-3 animate-in slide-in-from-bottom-2 duration-500">
+            <div className="flex-shrink-0 w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+              <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-bold text-amber-800">Límite diario alcanzado</p>
+              <p className="text-xs font-medium text-amber-600">Has agotado la cuota gratuita por hoy. Vuelve mañana para continuar tu sesión.</p>
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="max-w-7xl mx-auto relative">
-          <div className="relative flex items-end bg-slate-50/50 rounded-2xl border border-slate-200 focus-within:border-indigo-500 focus-within:bg-white transition-all shadow-sm">
+          <div className={`relative flex items-end bg-slate-50/50 rounded-2xl border transition-all shadow-sm ${
+            hasReachedLimit 
+              ? 'border-slate-100 opacity-50 grayscale' 
+              : 'border-slate-200 focus-within:border-indigo-500 focus-within:bg-white'
+          }`}>
             <textarea
               rows={1}
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              disabled={hasReachedLimit}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
                   handleSubmit(e as unknown as FormEvent);
                 }
               }}
-              placeholder="Cuéntame, ¿qué tienes en mente hoy?"
+              placeholder={hasReachedLimit ? "Vuelve mañana..." : "Cuéntame, ¿qué tienes en mente hoy?"}
               className="flex-1 w-full pl-6 pr-16 py-4 bg-transparent rounded-2xl text-slate-800 placeholder:text-slate-400 focus:outline-none resize-none overflow-hidden min-h-[56px] max-h-[200px]"
               style={{ height: 'auto' }}
               ref={(el) => {
@@ -232,7 +261,7 @@ export default function ChatWindow({ conversationId, onConversationCreated }: Ch
             <button
               type="submit"
               className="absolute right-2 bottom-2 bg-indigo-600 text-white rounded-xl p-3 hover:bg-indigo-700 disabled:opacity-30 transition-all active:scale-95 flex items-center justify-center shadow-lg shadow-indigo-200"
-              disabled={!input.trim()}
+              disabled={!input.trim() || hasReachedLimit}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"

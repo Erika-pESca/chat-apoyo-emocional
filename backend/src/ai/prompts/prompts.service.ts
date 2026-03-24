@@ -35,40 +35,35 @@ export class PromptsService {
         token,
       );
 
-    // 3. Obtener últimos 15 mensajes
+    // 3. Obtener últimos 8 mensajes (Optimizado para tokens)
     const recentMessages = await this.messagesService.findByConversation(
       conversationId,
       token,
-      15,
+      8,
     );
 
     // Construir el prompt
     let prompt = SYSTEM_PROMPT_COACHING + '\n\n';
 
-    // Inyectar Memoria Histórica si existe
+    // Inyectar Memoria Histórica (Evolución global)
     if (globalContext) {
-      prompt += `## MEMORIA HISTÓRICA DEL USUARIO (Sesiones Pasadas):\n`;
-      prompt += `Esta es la evolución del usuario a través del tiempo. Úsala para dar continuidad y notar cambios:\n`;
-      prompt += `${globalContext}\n\n`;
+      prompt += `## MEMORIA USUARIO:\n${globalContext}\n\n`;
     }
 
-    // Inyectar contexto de la conversación actual
+    // Inyectar contexto de la conversación actual (Resumen)
     if (conversationInfo.summary) {
-      prompt += `## Contexto acumulado de ESTA conversación:\n`;
-      prompt += `${conversationInfo.summary}\n\n`;
+      prompt += `## CONTEXTO ACTUAL:\n${conversationInfo.summary}\n\n`;
     }
 
-    // Agregar historial reciente
+    // Agregar historial reciente (Solo los últimos 8 mensajes)
     if (recentMessages.length > 0) {
-      prompt += `## Historial reciente de la conversación:\n`;
-      prompt += this.formatMessages(recentMessages) + '\n\n';
+      prompt += `## HISTORIAL RECIENTE:\n${this.formatMessages(recentMessages)}\n\n`;
     }
 
     // Agregar mensaje actual
-    prompt += `## Mensaje actual del usuario:\n`;
-    prompt += `${userMessage}\n\n`;
+    prompt += `## MENSAJE DEL USUARIO:\n${userMessage}\n\n`;
 
-    prompt += `**INSTRUCCIÓN DE ENFOQUE:** Responde EXCLUSIVAMENTE como coach emocional y mentor SerLider. Si el usuario pregunta por temas técnicos, políticos, noticias o cualquier asunto ajeno a su bienestar, crecimiento o liderazgo personal, redirígelo amablemente hacia su proceso de coaching actual. Sé empático, profesional y profundo.`;
+    prompt += `**Instrucción:** Responde como Coach SerLider. Máximo 2 párrafos breves. Sé empático y desafiante.`;
 
     return prompt;
   }

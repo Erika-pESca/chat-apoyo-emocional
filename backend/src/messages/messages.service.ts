@@ -97,6 +97,28 @@ export class MessagesService {
   }
 
   /**
+   * Contar respuestas de la IA a nivel global creadas hoy
+   */
+  async countGlobalAIResponsesToday(): Promise<number> {
+    const client = this.supabaseService.getAdminClient();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const { count, error } = await client
+      .from('messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('role', 'assistant')
+      .gte('created_at', today.toISOString());
+
+    if (error) {
+      console.error('Error counting global AI responses:', error);
+      return 0;
+    }
+
+    return count || 0;
+  }
+
+  /**
    * Obtener mensajes desde una fecha específica
    */
   async findSinceDate(

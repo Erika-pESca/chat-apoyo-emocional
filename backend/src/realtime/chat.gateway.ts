@@ -168,10 +168,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       console.log(`✅ Flujo completado exitosamente`);
     } catch (error) {
       console.error(`❌ Error en processAndRespond para conv ${conversationId}:`, error);
-      client.emit('error', {
-        message: 'Error al procesar el mensaje',
-        code: 'MESSAGE_ERROR',
-      });
+      
+      if (error.message === 'AI_LIMIT_REACHED') {
+        client.emit('error', {
+          message: 'Has alcanzado el límite gratuito por hoy. Vuelve mañana.',
+          code: 'AI_LIMIT_REACHED',
+        });
+        client.emit('ai_typing', { conversationId, isTyping: false });
+      } else {
+        client.emit('error', {
+          message: 'Error al procesar el mensaje',
+          code: 'MESSAGE_ERROR',
+        });
+      }
     }
   }
 
@@ -195,6 +204,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         client.emit('joined_conversation', {
           conversationId: payload.conversationId,
         });
+
+        // Verificar si el límite de IA ya se alcanzó al entrar
+        if (await this.aiService.isAILimitReached()) {
+          client.emit('error', {
+            message: 'Aviso: Se ha alcanzado el límite gratuito de la IA por hoy.',
+            code: 'AI_LIMIT_REACHED',
+          });
+        }
+
         console.log(
           `👤 Usuario ${userId} se unió a conversación ${payload.conversationId}`,
         );

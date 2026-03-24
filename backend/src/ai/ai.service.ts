@@ -2,14 +2,27 @@ import { Injectable } from '@nestjs/common';
 import { GeminiService } from './providers/gemini/gemini.service';
 import { PromptsService } from './prompts/prompts.service';
 import { ResponseValidatorService } from './validators/response-validator.service';
+import { MessagesService } from '../messages/messages.service';
 
 @Injectable()
 export class AIService {
+  private readonly DAILY_LIMIT = 1450; // Margen de seguridad de 50 sobre 1500
+
   constructor(
     private geminiService: GeminiService,
     private promptsService: PromptsService,
     private responseValidator: ResponseValidatorService,
+    private messagesService: MessagesService,
   ) { }
+
+  /**
+   * Verifica si se ha alcanzado el límite diario global
+   */
+  async isAILimitReached(): Promise<boolean> {
+    const count = await this.messagesService.countGlobalAIResponsesToday();
+    console.log(`📊 Uso de IA hoy: ${count}/${this.DAILY_LIMIT}`);
+    return count >= this.DAILY_LIMIT;
+  }
 
   /**
    * Genera una respuesta de coaching emocional
@@ -23,6 +36,11 @@ export class AIService {
     const { userMessage, conversationId, userId, token } = params;
 
     try {
+      // Verificar límite diario antes de proceder
+      if (await this.isAILimitReached()) {
+        throw new Error('AI_LIMIT_REACHED');
+      }
+
       // 1. Validar mensaje del usuario
       const userValidation =
         this.responseValidator.validateUserMessage(userMessage);
@@ -60,6 +78,10 @@ export class AIService {
       return rawResponse;
     } catch (error) {
       console.error('Error generating coaching response:', error);
+      // Propagar error de límite para que el gateway lo maneje
+      if (error.message === 'AI_LIMIT_REACHED') {
+        throw error;
+      }
       return this.promptsService.getFallbackResponse();
     }
   }
