@@ -19,7 +19,15 @@ export default function Login() {
       await signIn(email, password);
       navigate('/chat');
     } catch (err: any) {
-      setError(err.message || 'Error al iniciar sesión');
+      let friendlyMessage = err.message || 'Error al iniciar sesión';
+      
+      if (err.message === 'Invalid login credentials') {
+        friendlyMessage = 'El correo o la contraseña son incorrectos. Por favor, verifica tus datos.';
+      } else if (err.message === 'Email not confirmed') {
+        friendlyMessage = 'Debes confirmar tu correo electrónico antes de iniciar sesión.';
+      }
+
+      setError(friendlyMessage);
     } finally {
       setLoading(false);
     }
@@ -70,7 +78,7 @@ export default function Login() {
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 relative">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
                 Contraseña
               </label>
@@ -84,22 +92,33 @@ export default function Login() {
               />
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-500 text-white py-4 rounded-2xl font-bold shadow-lg shadow-blue-100 hover:bg-blue-600 transition-all active:scale-[0.98] mt-2 flex items-center justify-center space-x-2"
-            >
-              {loading ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-              ) : (
-                <>
-                  <span>Entrar al panel</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
-                </>
-              )}
-            </button>
+            <div className="space-y-4">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-blue-500 text-white py-4 rounded-2xl font-bold shadow-lg shadow-blue-100 hover:bg-blue-600 transition-all active:scale-[0.98] mt-2 flex items-center justify-center space-x-2"
+              >
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    <span>Entrar al chat</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </>
+                )}
+              </button>
+
+              <div className="text-center">
+                <Link 
+                  to="/forgot-password" 
+                  className="text-[10px] font-bold text-blue-500 hover:text-blue-600 uppercase tracking-widest transition-colors"
+                >
+                  ¿Olvidaste tu contraseña?
+                </Link>
+              </div>
+            </div>
           </form>
         </div>
 
