@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 
-const WEBSOCKET_URL = import.meta.env.VITE_WEBSOCKET_URL || 'http://localhost:3000';
+const WEBSOCKET_URL = (import.meta as any).env.VITE_WEBSOCKET_URL || 'http://localhost:3000';
 
 let socket: Socket | null = null;
 
