@@ -82,4 +82,24 @@ export class SupabaseService {
   getAdminClient(): SupabaseClient {
     return this.adminClient;
   }
+
+  /**
+   * Envía un correo para restablecer la contraseña
+   */
+  async sendPasswordReset(email: string, redirectTo: string) {
+    try {
+      const { data, error } = await this.adminClient.auth.resetPasswordForEmail(email, {
+        redirectTo,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      return { success: true, data };
+    } catch (error) {
+      console.error('Error sending password reset:', error);
+      throw new Error(error.message || 'Failed to send password reset email');
+    }
+  }
 }
