@@ -7,6 +7,7 @@ import type { Conversation } from '@/types';
 export default function ChatApp() {
   const { user, signOut } = useAuth();
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   // Estado para forzar la recarga de la lista de conversaciones
   const [listKey, setListKey] = useState(Date.now());
 
@@ -23,8 +24,16 @@ export default function ChatApp() {
 
   return (
     <div className="h-screen flex bg-gray-50 overflow-hidden">
+      {/* Mobile Backdrop */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 md:hidden animate-in fade-in duration-200"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <div className="w-80 flex-shrink-0 bg-white border-r border-slate-100 flex flex-col z-20">
+      <div className={`fixed inset-y-0 left-0 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 transition-transform duration-300 ease-in-out z-50 w-[85%] sm:w-80 flex-shrink-0 bg-white border-r border-slate-100 flex flex-col h-full shadow-2xl md:shadow-none`}>
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-extrabold tracking-tight text-slate-800">Mis Sesiones</h2>
@@ -46,20 +55,39 @@ export default function ChatApp() {
         <ConversationList
           key={listKey}
           selectedConversationId={selectedConversationId}
-          onSelectConversation={setSelectedConversationId}
-          onCreateNew={handleCreateNew}
+          onSelectConversation={(id) => {
+            setSelectedConversationId(id);
+            setIsMobileMenuOpen(false);
+          }}
+          onCreateNew={() => {
+            handleCreateNew();
+            setIsMobileMenuOpen(false);
+          }}
         />
       </div>
 
       {/* Chat Area */}
-      <div className="flex-1 flex flex-col bg-slate-50/50 relative">
+      <div className="flex-1 flex flex-col bg-slate-50/50 relative min-w-0">
         {selectedConversationId ? (
           <ChatWindow
             conversationId={selectedConversationId}
             onConversationCreated={handleConversationCreated}
+            onMenuClick={() => setIsMobileMenuOpen(true)}
           />
         ) : (
-          <div className="flex-1 flex items-center justify-center p-8">
+          <>
+            {/* Top bar with hamburger for mobile Welcome Screen */}
+            <div className="md:hidden p-4 absolute top-0 left-0 z-10 w-full flex items-center bg-transparent pointer-events-none">
+              <button 
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="pointer-events-auto p-2.5 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-white/80 transition-all bg-white/50 backdrop-blur-md shadow-sm border border-slate-200"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            </div>
+            <div className="flex-1 flex items-center justify-center p-8">
             <div className="max-w-md w-full text-center space-y-8 animate-in fade-in zoom-in duration-700">
               <div className="relative inline-block">
                 <div className="w-32 h-32 mx-auto bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] flex items-center justify-center border border-slate-100">
@@ -98,6 +126,7 @@ export default function ChatApp() {
               </div>
             </div>
           </div>
+          </>
         )}
       </div>
     </div>

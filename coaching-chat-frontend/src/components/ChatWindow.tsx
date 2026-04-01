@@ -5,9 +5,10 @@ import type { Message, Conversation } from '@/types';
 type ChatWindowProps = {
   conversationId: string;
   onConversationCreated: (conversation: Conversation) => void;
+  onMenuClick?: () => void;
 };
 
-export default function ChatWindow({ conversationId, onConversationCreated }: ChatWindowProps) {
+export default function ChatWindow({ conversationId, onConversationCreated, onMenuClick }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -157,6 +158,17 @@ export default function ChatWindow({ conversationId, onConversationCreated }: Ch
       <div className="p-4 bg-white border-b border-gray-200 shadow-sm z-10">
         <div className="max-w-7xl mx-auto flex items-center justify-between px-2">
           <div className="flex items-center space-x-4">
+            {onMenuClick && (
+              <button 
+                onClick={onMenuClick}
+                className="md:hidden -ml-2 p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                aria-label="Abrir menú"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            )}
             <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center shadow-inner">
               <svg className="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
